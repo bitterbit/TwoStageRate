@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">TwoStageRating</string>
+    <string name="confirm_rate_title">AAA</string>
+    <string name="confirm_rate_text">BBB</string>
+    <string name="confirm_rate_negative_text">CCC</string>
+    <string name="confirm_rate_positive_text">DDD</string>
 </resources>

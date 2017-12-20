@@ -52,10 +52,15 @@ public class TwoStageRate {
      * same for feedback dialog
      */
 
-    //for callback
-    private FeedbackReceivedListener feedbackReceivedListener;
-    private DialogDismissedListener dialogDismissedListener;
-    private FeedbackWithRatingReceivedListener feedbackWithRatingReceivedListener;
+
+    private FeedbackListener feedbackListener;
+
+    public interface FeedbackListener {
+        void onPositiveFeedback(float rating);
+        void onNegativeFeedback(float rating, String message);
+
+        void onClickGooglePlay();
+    }
 
     private float lastRating;
 
@@ -63,9 +68,16 @@ public class TwoStageRate {
         this.mContext = context;
     }
 
+    private static TwoStageRate instance;
+
     public static TwoStageRate with(Context context) {
         setUpSettingsIfNotExists(context);
-        return new TwoStageRate(context);
+        if (instance == null){
+            instance = new TwoStageRate(context);
+        }
+
+        instance.mContext = context;
+        return instance;
     }
 
     /**
@@ -77,11 +89,6 @@ public class TwoStageRate {
         settings.setInstallDays(Utils.getIntSystemValue(SHARED_PREFERENCES_TOTAL_INSTALL_DAYS, context, 5));
         settings.setLaunchTimes(Utils.getIntSystemValue(SHARED_PREFERENCES_TOTAL_LAUNCH_TIMES, context, 5));
 
-    }
-
-    public TwoStageRate setFeedbackWithRatingReceivedListener(FeedbackWithRatingReceivedListener feedbackWithRatingReceivedListener) {
-        this.feedbackWithRatingReceivedListener = feedbackWithRatingReceivedListener;
-        return this;
     }
 
     /**
@@ -226,6 +233,13 @@ public class TwoStageRate {
             public void onClick(View view) {
                 if (lastRating > threshold) {
                     Dialog dialog1 = getConfirmRateDialog(context, confirmRateDialog);
+
+                    Log.i("MYTAG", "last rating > threshold " + feedbackListener);
+
+                    if (feedbackListener != null) {
+                        feedbackListener.onPositiveFeedback(lastRating);
+                    }
+
                     if (dialog1 != null) {
                         dialog1.show();
                     }
@@ -233,11 +247,8 @@ public class TwoStageRate {
                     Dialog dialog1 = getFeedbackDialog(context, feedbackDialog, new FeedbackReceivedListener() {
                         @Override
                         public void onFeedbackReceived(String feedback) {
-                            if (feedbackReceivedListener != null) {
-                                feedbackReceivedListener.onFeedbackReceived(feedback);
-                            }
-                            if (feedbackWithRatingReceivedListener != null) {
-                                feedbackWithRatingReceivedListener.onFeedbackReceived(lastRating, feedback);
+                            if (feedbackListener != null) {
+                                feedbackListener.onNegativeFeedback(lastRating, feedback);
                             }
                         }
                     });
@@ -288,7 +299,7 @@ public class TwoStageRate {
         deny.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ToDo : emit something here
+                //ToDo : emit something hereg
                 //Reseting twostage if declined and setting is done so
                 if ((Utils.getBooleanSystemValue(SHARED_PREFERENCES_SHOULD_RESET_ON_RATING_DECLINED, mContext, false))) {
                     resetTwoStage();
@@ -300,8 +311,8 @@ public class TwoStageRate {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                feedbackListener.onClickGooglePlay();
 
-                //// TODO: 2/8/16 : Write a callback
                 final Intent intentToAppstore = settings.getStoreType() == Settings.StoreType.GOOGLEPLAY ?
                         IntentHelper.createIntentForGooglePlay(context) : IntentHelper.createIntentForAmazonAppstore(context);
                 context.startActivity(intentToAppstore);
@@ -423,13 +434,8 @@ public class TwoStageRate {
         return this;
     }
 
-    public TwoStageRate setFeedbackReceivedListener(FeedbackReceivedListener feedbackReceivedListener) {
-        this.feedbackReceivedListener = feedbackReceivedListener;
-        return this;
-    }
-
-    public TwoStageRate setOnDialogDismissedListener(DialogDismissedListener dialogDismissedListener) {
-        this.dialogDismissedListener = dialogDismissedListener;
+    public TwoStageRate setListener(FeedbackListener listener){
+        feedbackListener = listener;
         return this;
     }
 
