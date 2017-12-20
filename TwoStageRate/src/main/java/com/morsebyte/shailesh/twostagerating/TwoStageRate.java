@@ -219,12 +219,11 @@ public class TwoStageRate {
         }
 
         final TextView tvRatePromptSubmit = (TextView)dialog.findViewById(R.id.tvRatePromptSubmit);
+        tvRatePromptSubmit.setText(ratePromptDialog.rateSubmit);
 
         tvRatePromptSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i("TAG", "got rating " + lastRating);
-
                 if (lastRating > threshold) {
                     Dialog dialog1 = getConfirmRateDialog(context, confirmRateDialog);
                     if (dialog1 != null) {
@@ -388,13 +387,8 @@ public class TwoStageRate {
         return this;
     }
 
-    public TwoStageRate setRatePromptLaterText(String ratePromptLaterText) {
-        this.ratePromptDialog.ratePromptLaterText = ratePromptLaterText;
-        return this;
-    }
-
-    public TwoStageRate setRatePromptNeverText(String ratePromptNeverText) {
-        this.ratePromptDialog.ratePromptNeverText = ratePromptNeverText;
+    public TwoStageRate setRatePromptSubmitText(String submitText){
+        this.ratePromptDialog.rateSubmit = submitText;
         return this;
     }
 
