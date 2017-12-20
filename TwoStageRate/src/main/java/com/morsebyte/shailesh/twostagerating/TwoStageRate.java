@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
@@ -54,6 +56,8 @@ public class TwoStageRate {
     private FeedbackReceivedListener feedbackReceivedListener;
     private DialogDismissedListener dialogDismissedListener;
     private FeedbackWithRatingReceivedListener feedbackWithRatingReceivedListener;
+
+    private float lastRating;
 
     private TwoStageRate(Context context) {
         this.mContext = context;
@@ -204,7 +208,7 @@ public class TwoStageRate {
         // set the custom dialog components - text, image and button
         TextView title = (TextView) dialog.findViewById(R.id.tvRatePromptTitle);
         title.setText(ratePromptDialog.getTitle());
-        RatingBar rbRating = (RatingBar) dialog.findViewById(R.id.rbRatePromptBar);
+        final RatingBar rbRating = (RatingBar) dialog.findViewById(R.id.rbRatePromptBar);
         ImageView ivAppIcon = (ImageView) dialog.findViewById(R.id.ivAppIcon);
 
         if ((Utils.getBooleanSystemValue(SHARED_PREFERENCES_SHOW_ICON_KEY, context, true))) {
@@ -214,17 +218,19 @@ public class TwoStageRate {
             ivAppIcon.setVisibility(View.GONE);
         }
 
-        rbRating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+        final TextView tvRatePromptSubmit = (TextView)dialog.findViewById(R.id.tvRatePromptSubmit);
+
+        tvRatePromptSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onRatingChanged(RatingBar ratingBar, final float rating, boolean fromUser) {
-                if (rating > threshold) {
-                    ConfirmRateDialog cr = new ConfirmRateDialog();
+            public void onClick(View view) {
+                Log.i("TAG", "got rating " + lastRating);
+
+                if (lastRating > threshold) {
                     Dialog dialog1 = getConfirmRateDialog(context, confirmRateDialog);
                     if (dialog1 != null) {
                         dialog1.show();
                     }
                 } else {
-                    FeedbackDialog fd = new FeedbackDialog();
                     Dialog dialog1 = getFeedbackDialog(context, feedbackDialog, new FeedbackReceivedListener() {
                         @Override
                         public void onFeedbackReceived(String feedback) {
@@ -232,7 +238,7 @@ public class TwoStageRate {
                                 feedbackReceivedListener.onFeedbackReceived(feedback);
                             }
                             if (feedbackWithRatingReceivedListener != null) {
-                                feedbackWithRatingReceivedListener.onFeedbackReceived(rating, feedback);
+                                feedbackWithRatingReceivedListener.onFeedbackReceived(lastRating, feedback);
                             }
                         }
                     });
@@ -241,8 +247,19 @@ public class TwoStageRate {
                     }
                 }
                 dialog.dismiss();
+
             }
         });
+
+        rbRating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, final float rating, boolean fromUser) {
+                tvRatePromptSubmit.setEnabled(true);
+                tvRatePromptSubmit.setTextColor(ContextCompat.getColor(context, R.color.rate_prompt_button_text_color));
+                lastRating = rating;
+            }
+        });
+
         dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {

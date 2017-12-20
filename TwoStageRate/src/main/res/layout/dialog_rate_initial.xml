@@ -35,45 +35,29 @@
         android:numStars="5"
         android:layout_gravity="center_horizontal"
         />
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/llButtonsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:visibility="gone">
-<TextView
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:padding="10dp"
-    android:text="Never"
-    android:textColor="@color/rate_prompt_button_text_color"
-    android:textSize="@dimen/text_size_medium"
-    android:layout_weight="1"
-    android:gravity="center_horizontal"
-    />
+        android:visibility="visible">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="Later"
-            android:textColor="@color/rate_prompt_button_text_color"
-            android:textSize="@dimen/text_size_medium"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="Rate"
-            android:textColor="@color/rate_prompt_button_text_color"
-            android:textSize="@dimen/text_size_medium"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            />
+    <TextView
+        android:id="@+id/tvRatePromptSubmit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:padding="10dp"
+        android:enabled="false"
+        android:text="Submit"
+        android:textColor="@color/rate_prompt_button_disabled_color"
+        android:textSize="@dimen/text_size_medium"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>
