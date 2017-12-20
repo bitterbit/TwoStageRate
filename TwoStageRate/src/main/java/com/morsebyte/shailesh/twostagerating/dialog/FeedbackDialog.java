@@ -1,7 +1,5 @@
 package com.morsebyte.shailesh.twostagerating.dialog;
 
-import com.morsebyte.shailesh.twostagerating.FeedbackReceivedListener;
-
 /**
  * Created by GuestHouser on 2/8/16.
  */
