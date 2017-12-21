@@ -1,6 +1,5 @@
 package com.morsebyte.shailesh.samplerateapplication;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -9,11 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
-import com.morsebyte.shailesh.twostagerating.DialogDismissedListener;
-import com.morsebyte.shailesh.twostagerating.FeedbackReceivedListener;
-import com.morsebyte.shailesh.twostagerating.FeedbackWithRatingReceivedListener;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
 
 public class MainActivity extends AppCompatActivity {
@@ -68,73 +63,36 @@ public class MainActivity extends AppCompatActivity {
 
     private void initTwoStage() {
         TwoStageRate twoStageRate = TwoStageRate.with(this);
-
         twoStageRate.setInstallDays(5).setEventsTimes(3).setLaunchTimes(5);
-
         twoStageRate.resetOnDismiss(true).resetOnFeedBackDeclined(true).resetOnRatingDeclined(true);
-
         twoStageRate.setShowAppIcon(true);
 
+        twoStageRate.setFeedbackDialogEmptyText("Empty text");
+
+        twoStageRate.setRatePromptTitle("Title!");
+        twoStageRate.setRatePromptSubmitText("sub");
+        twoStageRate.setFeedbackDialogDescription("desc");
+        twoStageRate.setConfirmRateDialogTitle("titlell");
 
 
         Log.i("TAG", "initTwoStage");
 
-
-
-        twoStageRate.showIfMeetsConditions();
-
-
-//        /**
-//         * To receive feedback only, use this listener
-//         */
-//        twoStageRate.setFeedbackReceivedListener(new FeedbackReceivedListener() {
-//            @Override
-//            public void onFeedbackReceived(String feedback) {
-//                Toast.makeText(MainActivity.this, feedback, Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
-        /**
-         * To receive rating along with with feedback, use this.
-         */
         twoStageRate.setListener(new TwoStageRate.FeedbackListener() {
             @Override
-            public void onPositiveFeedback(float rating) {
-                Log.i("MYTAG", "on positive feedback! " + rating);
-
+            public void onRatePromptSubmit(float rating) {
+                Log.i("MYTAG", "rate prompt submit");
             }
 
             @Override
-            public void onNegativeFeedback(float rating, String message) {
+            public void onNegativeFeedbackSubmit(float rating, String message) {
                 Log.i("MYTAG", "on negative feedback " + rating + " " + message);
             }
 
             @Override
-            public void onClickGooglePlay() {
-                Log.i("MYTAG", "on google play");
+            public void onPositiveFeedbackSubmit(float rating) {
+                Log.i("MYTAG", "on positive feedback! " + rating);
             }
          });
-
-
-                /**
-                 *  Provide your custom text on initial rate prompt dialog*/
-
-                //twoStageRate.with(this).setRatePromptTitle("INITIAL_TITLE").
-                //        setRatePromptLaterText("LATER_TEXT").setRatePromptNeverText("NEVER_TEXT").setRatePromptDismissible(false);
-
-
-                /**
-                 * provide custom text on the confirmation dialog*/
-
-                // twoStageRate.with(this).setConfirmRateDialogTitle("CONFIRMATION_TITLE").setConfirmRateDialogDescription("CONFIRMATION_DESCRITPION").
-                //        setConfirmRateDialogPositiveText("POSITIVE_BUTTON_TEXT").setConfirmRateDialogNegativeText("NEGATIVE_BUTTON_TEXT").setConfirmRateDialogDismissible(true);
-
-
-                /**
-                 * provide custom text on feedback dialog*/
-
-                // twoStageRate.with(this).setFeedbackDialogTitle("FEEDBACK_TITLE").setFeedbackDialogDescription("FEEDBACK_DIALOG_DESCRIPTION").
-                //       setFeedbackDialogPositiveText("POSITIVE_BUTTON_TEXT").setFeedbackDialogNegativeText("NEGATIVE_BUTTON_TEXT").setFeedbackDialogDismissible(false);
 
 
     }
