@@ -121,6 +121,7 @@ public class Utils {
 
         return cal;                                  // return the date part
     }
+
     /**
      * This method also assumes endDate >= startDate
      **/

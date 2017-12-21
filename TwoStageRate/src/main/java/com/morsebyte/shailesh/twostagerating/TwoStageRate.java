@@ -265,6 +265,7 @@ public class TwoStageRate {
             @Override
             public void onRatingChanged(RatingBar ratingBar, final float rating, boolean fromUser) {
                 tvRatePromptSubmit.setEnabled(true);
+                //tvRatePromptSubmit.setTextColor(context.getResources().getColor());
                 tvRatePromptSubmit.setTextColor(ContextCompat.getColor(context, R.color.rate_prompt_button_text_color));
                 lastRating = rating;
             }
