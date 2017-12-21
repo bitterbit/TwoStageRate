@@ -30,15 +30,6 @@ public class TwoStageRate {
     private static final String INSTALL_DATE = "TWOSTAGEINSTALLDATE";
     private static final String EVENT_COUNT = "TWOSTAGEEVENTCOUNT";
     private static final String STOP_TRACK = "TWOSTAGESTOPTRACK";
-    private static TwoStageRate singleton;
-    public AppRateDataModel appRateData = new AppRateDataModel();
-    public RatePromptDialog ratePromptDialog = new RatePromptDialog();
-    public FeedbackDialog feedbackDialog = new FeedbackDialog();
-    public ConfirmRateDialog confirmRateDialog = new ConfirmRateDialog();
-    public static Settings settings = new Settings();
-    boolean isDebug = false;
-    private Context mContext;
-
 
     private static final String SHARED_PREFERENCES_SHOW_ICON_KEY = "TwoStageRateShowAppIcon";
     private static final String SHARED_PREFERENCES_SHOULD_RESET_ON_DISMISS = "TwoStageRateShouldRefreshOnPrimaryDISMISS";
@@ -48,21 +39,23 @@ public class TwoStageRate {
     private static final String SHARED_PREFERENCES_TOTAL_LAUNCH_TIMES = "TwoStageRateTotalLaunchTimes";
     private static final String SHARED_PREFERENCES_TOTAL_EVENTS_COUNT = "TwoStageRateTotalEventCount";
     private static final String SHARED_PREFERENCES_TOTAL_INSTALL_DAYS = "TwoStageRateTotalInstallDays";
-    /**
-     * same for feedback dialog
-     */
 
+
+    private RatePromptDialog ratePromptDialog = new RatePromptDialog();
+    private FeedbackDialog feedbackDialog = new FeedbackDialog();
+    private ConfirmRateDialog confirmRateDialog = new ConfirmRateDialog();
+    private Settings settings = new Settings();
+    private boolean isDebug = false;
+    private Context mContext;
+    private float lastRating;
 
     private FeedbackListener feedbackListener;
 
     public interface FeedbackListener {
-        void onPositiveFeedback(float rating);
-        void onNegativeFeedback(float rating, String message);
-
-        void onClickGooglePlay();
+        void onRatePromptSubmit(float rating);
+        void onNegativeFeedbackSubmit(float rating, String message);
+        void onPositiveFeedbackSubmit(float rating);
     }
-
-    private float lastRating;
 
     private TwoStageRate(Context context) {
         this.mContext = context;
@@ -71,11 +64,11 @@ public class TwoStageRate {
     private static TwoStageRate instance;
 
     public static TwoStageRate with(Context context) {
-        setUpSettingsIfNotExists(context);
         if (instance == null){
             instance = new TwoStageRate(context);
         }
 
+        instance.setUpSettingsIfNotExists(context);
         instance.mContext = context;
         return instance;
     }
@@ -83,12 +76,10 @@ public class TwoStageRate {
     /**
      * Sets up setting items if they are in preferences. Else it just sets the default values
      */
-    private static void setUpSettingsIfNotExists(Context context) {
-
+    private void setUpSettingsIfNotExists(Context context) {
         settings.setEventsTimes(Utils.getIntSystemValue(SHARED_PREFERENCES_TOTAL_EVENTS_COUNT, context, 10));
         settings.setInstallDays(Utils.getIntSystemValue(SHARED_PREFERENCES_TOTAL_INSTALL_DAYS, context, 5));
         settings.setLaunchTimes(Utils.getIntSystemValue(SHARED_PREFERENCES_TOTAL_LAUNCH_TIMES, context, 5));
-
     }
 
     /**
@@ -205,7 +196,7 @@ public class TwoStageRate {
 
     }
 
-    public Dialog getRatePromptDialog(final Context context, final RatePromptDialog ratePromptDialog, final float threshold) {
+    private Dialog getRatePromptDialog(final Context context, final RatePromptDialog ratePromptDialog, final float threshold) {
         // custom dialog
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -231,24 +222,29 @@ public class TwoStageRate {
         tvRatePromptSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(feedbackListener != null){
+                    feedbackListener.onRatePromptSubmit(lastRating);
+                }
+
                 if (lastRating > threshold) {
-                    Dialog dialog1 = getConfirmRateDialog(context, confirmRateDialog);
+                    Dialog dialog1 = getConfirmRateDialog(context, confirmRateDialog, new PositiveFeedbackDialogListener() {
+                        @Override
+                        public void submit() {
+                            feedbackListener.onPositiveFeedbackSubmit(lastRating);
+                        }
+                    });
 
                     Log.i("MYTAG", "last rating > threshold " + feedbackListener);
-
-                    if (feedbackListener != null) {
-                        feedbackListener.onPositiveFeedback(lastRating);
-                    }
 
                     if (dialog1 != null) {
                         dialog1.show();
                     }
                 } else {
-                    Dialog dialog1 = getFeedbackDialog(context, feedbackDialog, new FeedbackReceivedListener() {
+                    Dialog dialog1 = getFeedbackDialog(context, feedbackDialog, new NegativeFeedbackDialogListener() {
                         @Override
-                        public void onFeedbackReceived(String feedback) {
+                        public void onSubmit(String feedback) {
                             if (feedbackListener != null) {
-                                feedbackListener.onNegativeFeedback(lastRating, feedback);
+                                feedbackListener.onNegativeFeedbackSubmit(lastRating, feedback);
                             }
                         }
                     });
@@ -281,7 +277,7 @@ public class TwoStageRate {
         return dialog;
     }
 
-    public Dialog getConfirmRateDialog(final Context context, final ConfirmRateDialog confirmRateDialog) {
+    public Dialog getConfirmRateDialog(final Context context, final ConfirmRateDialog confirmRateDialog, final PositiveFeedbackDialogListener listener) {
         // custom dialog
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -289,19 +285,17 @@ public class TwoStageRate {
         dialog.setCancelable(this.confirmRateDialog.isDismissible());
 
         // set the custom dialog components - text, image and button
-        TextView title = (TextView) dialog.findViewById(R.id.tvConfirmRateTitle);
-        title.setText(confirmRateDialog.getTitle());
-        TextView text = (TextView) dialog.findViewById(R.id.tvConfirmRateText);
-        text.setText(confirmRateDialog.getDescription());
+        ((TextView) dialog.findViewById(R.id.tvConfirmRateTitle)).setText(confirmRateDialog.getTitle());
+        ((TextView) dialog.findViewById(R.id.tvConfirmRateText)).setText(confirmRateDialog.getDescription());
+
         TextView deny = (TextView) dialog.findViewById(R.id.tvConfirmDeny);
         deny.setText(confirmRateDialog.getNegativeText());
-        TextView submit = (TextView) dialog.findViewById(R.id.tvConfirmSubmit);
-        submit.setText(confirmRateDialog.getPositiveText());
+
+
         deny.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ToDo : emit something hereg
-                //Reseting twostage if declined and setting is done so
+                //Resetting twostage if declined and setting is done so
                 if ((Utils.getBooleanSystemValue(SHARED_PREFERENCES_SHOULD_RESET_ON_RATING_DECLINED, mContext, false))) {
                     resetTwoStage();
                 }
@@ -309,11 +303,13 @@ public class TwoStageRate {
             }
 
         });
+
+        TextView submit = (TextView) dialog.findViewById(R.id.tvConfirmSubmit);
+        submit.setText(confirmRateDialog.getPositiveText());
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                feedbackListener.onClickGooglePlay();
-
+                listener.submit();
                 final Intent intentToAppstore = settings.getStoreType() == Settings.StoreType.GOOGLEPLAY ?
                         IntentHelper.createIntentForGooglePlay(context) : IntentHelper.createIntentForAmazonAppstore(context);
                 context.startActivity(intentToAppstore);
@@ -333,7 +329,7 @@ public class TwoStageRate {
         return dialog;
     }
 
-    public Dialog getFeedbackDialog(final Context context, final FeedbackDialog feedbackDialog, final FeedbackReceivedListener feedbackReceivedListener) {
+    public Dialog getFeedbackDialog(final Context context, final FeedbackDialog feedbackDialog, final NegativeFeedbackDialogListener listener) {
         // custom dialog
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -358,7 +354,7 @@ public class TwoStageRate {
                 if ((Utils.getBooleanSystemValue(SHARED_PREFERENCES_SHOULD_RESET_ON_FEEDBACK_DECLINED, mContext, false))) {
                     resetTwoStage();
                 }
-                    dialog.dismiss();
+                dialog.dismiss();
             }
 
         });
@@ -366,13 +362,10 @@ public class TwoStageRate {
             @Override
             public void onClick(View v) {
                 if (etFeedback.getText() != null && etFeedback.getText().length() > 0) {
-                    //// TODO: 2/8/16 : Write a callback with the text in it
                     dialog.dismiss();
-                    if (feedbackReceivedListener != null) {
-                        feedbackReceivedListener.onFeedbackReceived(etFeedback.getText().toString());
-                    }
+                    listener.onSubmit(etFeedback.getText().toString());
                 } else {
-                    Toast.makeText(context, "Bro.. Write Something", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, feedbackDialog.feedbackPromptEmptyText, Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -435,16 +428,20 @@ public class TwoStageRate {
         return this;
     }
 
+    public TwoStageRate setFeedbackDialogEmptyText(String text){
+        this.feedbackDialog.feedbackPromptEmptyText = text;
+        return this;
+    }
+
     public TwoStageRate setListener(FeedbackListener listener){
         feedbackListener = listener;
         return this;
     }
 
-    public void onDialogDismissed() {
+    private void onDialogDismissed() {
         if ((Utils.getBooleanSystemValue(SHARED_PREFERENCES_SHOULD_RESET_ON_DISMISS, mContext, true))) {
             resetTwoStage();
         }
-        //dialogDismissedListener.onDialogDismissed();
     }
 
     /*

@@ -10,6 +10,8 @@ public class FeedbackDialog {
     public String feedbackPromptText = "Could you tell us what problem you faced. This will help us improve.";
     public String feedbackPromptPositiveText = "Submit";
     public String feedbackPromptNegativeText = "No Thanks!";
+    public String feedbackPromptEmptyText = "Bro.. Write Something";
+
     public boolean dismissible = true;
     public void setDismissible(boolean dismissible)
     {

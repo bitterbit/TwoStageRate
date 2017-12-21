@@ -6,8 +6,8 @@ package com.morsebyte.shailesh.twostagerating.dialog;
  */
 public class RatePromptDialog {
 
-    public static String ratePromptTitle = "How would you rate our app?";
-    public static String rateSubmit = "Submit";
+    public String ratePromptTitle = "How would you rate our app?";
+    public String rateSubmit = "Submit";
     public boolean dismissible = true;
 
     public void setDismissible(boolean dismissible)
