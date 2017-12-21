@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.morsebyte.shailesh.twostagerating.DialogDismissedListener;
 import com.morsebyte.shailesh.twostagerating.FeedbackReceivedListener;
 import com.morsebyte.shailesh.twostagerating.FeedbackWithRatingReceivedListener;
 import com.morsebyte.shailesh.twostagerating.TwoStageRate;
@@ -34,7 +36,10 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, EventActivity.class));
+                TwoStageRate twoStageRate = TwoStageRate.with(MainActivity.this);
+                twoStageRate.showRatePromptDialog();
+
+                //startActivity(new Intent(MainActivity.this, EventActivity.class));
             }
         });
     }
@@ -71,49 +76,65 @@ public class MainActivity extends AppCompatActivity {
         twoStageRate.setShowAppIcon(true);
 
 
+
+        Log.i("TAG", "initTwoStage");
+
+
+
         twoStageRate.showIfMeetsConditions();
 
 
-        /**
-         * To receive feedback only, use this listener
-         */
-        twoStageRate.setFeedbackReceivedListener(new FeedbackReceivedListener() {
-            @Override
-            public void onFeedbackReceived(String feedback) {
-                Toast.makeText(MainActivity.this, feedback, Toast.LENGTH_SHORT).show();
-            }
-        });
+//        /**
+//         * To receive feedback only, use this listener
+//         */
+//        twoStageRate.setFeedbackReceivedListener(new FeedbackReceivedListener() {
+//            @Override
+//            public void onFeedbackReceived(String feedback) {
+//                Toast.makeText(MainActivity.this, feedback, Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         /**
          * To receive rating along with with feedback, use this.
          */
-        twoStageRate.setFeedbackWithRatingReceivedListener(new FeedbackWithRatingReceivedListener() {
+        twoStageRate.setListener(new TwoStageRate.FeedbackListener() {
             @Override
-            public void onFeedbackReceived(float rating, String feedback) {
-                Toast.makeText(MainActivity.this, "Rating :" + rating + "Feedback :" + feedback, Toast.LENGTH_SHORT).show();
+            public void onPositiveFeedback(float rating) {
+                Log.i("MYTAG", "on positive feedback! " + rating);
+
             }
-        });
+
+            @Override
+            public void onNegativeFeedback(float rating, String message) {
+                Log.i("MYTAG", "on negative feedback " + rating + " " + message);
+            }
+
+            @Override
+            public void onClickGooglePlay() {
+                Log.i("MYTAG", "on google play");
+            }
+         });
 
 
-        /**
-         *  Provide your custom text on initial rate prompt dialog*/
+                /**
+                 *  Provide your custom text on initial rate prompt dialog*/
 
-       //twoStageRate.with(this).setRatePromptTitle("INITIAL_TITLE").
-        //        setRatePromptLaterText("LATER_TEXT").setRatePromptNeverText("NEVER_TEXT").setRatePromptDismissible(false);
-
-
-        /**
-         * provide custom text on the confirmation dialog*/
-
-        // twoStageRate.with(this).setConfirmRateDialogTitle("CONFIRMATION_TITLE").setConfirmRateDialogDescription("CONFIRMATION_DESCRITPION").
-        //        setConfirmRateDialogPositiveText("POSITIVE_BUTTON_TEXT").setConfirmRateDialogNegativeText("NEGATIVE_BUTTON_TEXT").setConfirmRateDialogDismissible(true);
+                //twoStageRate.with(this).setRatePromptTitle("INITIAL_TITLE").
+                //        setRatePromptLaterText("LATER_TEXT").setRatePromptNeverText("NEVER_TEXT").setRatePromptDismissible(false);
 
 
-        /**
-         * provide custom text on feedback dialog*/
+                /**
+                 * provide custom text on the confirmation dialog*/
 
-       // twoStageRate.with(this).setFeedbackDialogTitle("FEEDBACK_TITLE").setFeedbackDialogDescription("FEEDBACK_DIALOG_DESCRIPTION").
-         //       setFeedbackDialogPositiveText("POSITIVE_BUTTON_TEXT").setFeedbackDialogNegativeText("NEGATIVE_BUTTON_TEXT").setFeedbackDialogDismissible(false);
+                // twoStageRate.with(this).setConfirmRateDialogTitle("CONFIRMATION_TITLE").setConfirmRateDialogDescription("CONFIRMATION_DESCRITPION").
+                //        setConfirmRateDialogPositiveText("POSITIVE_BUTTON_TEXT").setConfirmRateDialogNegativeText("NEGATIVE_BUTTON_TEXT").setConfirmRateDialogDismissible(true);
+
+
+                /**
+                 * provide custom text on feedback dialog*/
+
+                // twoStageRate.with(this).setFeedbackDialogTitle("FEEDBACK_TITLE").setFeedbackDialogDescription("FEEDBACK_DIALOG_DESCRIPTION").
+                //       setFeedbackDialogPositiveText("POSITIVE_BUTTON_TEXT").setFeedbackDialogNegativeText("NEGATIVE_BUTTON_TEXT").setFeedbackDialogDismissible(false);
 
 
     }
