@@ -172,7 +172,6 @@ public class TwoStageRate {
     public void incrementEvent() {
         int eventCount = Utils.getIntSystemValue(EVENT_COUNT, mContext) + 1;
         Utils.setIntSystemValue(EVENT_COUNT, eventCount, mContext);
-        showIfMeetsConditions();
     }
 
     public void isDebug(Boolean isDeb) {
